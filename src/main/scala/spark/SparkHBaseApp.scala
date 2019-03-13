@@ -38,5 +38,4 @@ object SparkHBaseApp extends App {
     val dataset = sparkSession.createDataset(values)
     dataset.show()
   }
-
 }
