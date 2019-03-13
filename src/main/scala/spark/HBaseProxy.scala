@@ -32,8 +32,8 @@ class HBaseProxy(conf: Config) {
     val family = columnFamily.getBytes
     for (i <- 1 to putCount) {
       val rowKey = Bytes.toBytes(i)
-      val qualifier = Bytes.toBytes(i)
       val put = new Put(rowKey)
+      val qualifier = Bytes.toBytes(i)
       val value = Bytes.toBytes(i + i)
       put.addColumn(family, qualifier, value)
       puts += put
