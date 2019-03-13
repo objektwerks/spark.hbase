@@ -9,7 +9,7 @@ object SparkHBaseApp extends App {
   val conf = ConfigFactory.load("app.conf")
 
   val hbaseProxy = HBaseProxy(conf)
-  val hbaseValues = hbaseProxy.values()
+  val hbaseValues = hbaseProxy.values.getOrElse(Seq.empty[String])
 
   val master = conf.getString("spark.master")
   val app = conf.getString("spark.app")
@@ -26,5 +26,5 @@ object SparkHBaseApp extends App {
 
   import sparkSession.implicits._
 
-  val dataset = sparkSession.createDataset(hbaseValues.getOrElse(Seq.empty[String]))
+  val dataset = sparkSession.createDataset(hbaseValues)
 }
