@@ -29,13 +29,13 @@ class HBaseProxy(conf: Config) {
 
   def put(): Try[Unit] = Try {
     val puts = ArrayBuffer.empty[Put]
+    val family = columnFamily.getBytes
     for (i <- 1 to putCount) {
-      val columnFamilyAsBytes = columnFamily.getBytes
-      val valueAsString = i.toString
-      val valueAsBytes = valueAsString.getBytes
-      val row = Bytes.toBytes(valueAsString)
-      val put = new Put(row)
-      put.addColumn(columnFamilyAsBytes, valueAsBytes, valueAsBytes)
+      val rowKey = Bytes.toBytes(i)
+      val qualifier = Bytes.toBytes(i)
+      val put = new Put(rowKey)
+      val value = Bytes.toBytes(i + i)
+      put.addColumn(family, qualifier, value)
       puts += put
     }
     val table = connection.getTable(TableName.valueOf(tableName))
