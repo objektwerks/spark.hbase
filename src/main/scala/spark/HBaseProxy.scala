@@ -40,9 +40,14 @@ case class HBaseProxy(conf: Config) {
       put.addColumn(family, qualifier, value)
       puts += put
     }
-    val table = connection.getTable(TableName.valueOf(tableName))
-    table.put(puts.asJava)
-    log.info(s"*** Put $putCount rows to table: $tableName")
+    var table: Option[Table] = None
+    try {
+      table = Some( connection.getTable(TableName.valueOf(tableName)) )
+      table.foreach( t => t.put(puts.asJava) )
+    } finally {
+      table.foreach( t => t.close() )
+      log.info(s"*** Put $putCount rows to table: $tableName")
+    }
   }
 
   def scan(): Try[IndexedSeq[String]] = Try {
@@ -51,20 +56,33 @@ case class HBaseProxy(conf: Config) {
     filterList.addFilter(new KeyOnlyFilter())
     val scan = new Scan()
     scan.setFilter(filterList)
-    val table = connection.getTable(TableName.valueOf(tableName))
-    val scanner = table.getScanner(scan)
+    var table: Option[Table] = None
     val rowKeys = ArrayBuffer.empty[String]
-    val iterator = scanner.iterator
-    while ( iterator.hasNext ) {
-      rowKeys += iterator.next.getRow.toString
+    try {
+      table = Some( connection.getTable(TableName.valueOf(tableName)) )
+      val scanner = table.map( t => t.getScanner(scan) )
+      scanner.foreach { s =>
+        val iterator = s.iterator
+        while ( iterator.hasNext ) {
+          rowKeys += iterator.next.getRow.toString
+        }
+      }
+      rowKeys
+    } finally {
+      table.foreach( t => t.close() )
+      log.info(s"*** Scan ${rowKeys.length} rows from table: $tableName")
     }
-    rowKeys
   }
 
-  def get(rowKey: String): Try[String] = Try {
+  def get(rowKey: String): Try[Option[String]] = Try {
     val get = new Get(Bytes.toBytes(rowKey))
-    val table = connection.getTable(TableName.valueOf(tableName))
-    val result = table.get(get)
-    result.getRow.toString
+    var table: Option[Table] = None
+    try {
+      table = Some( connection.getTable(TableName.valueOf(tableName)) )
+      table.map( t => t.get(get).getRow.toString )
+    } finally {
+      table.foreach( t => t.close() )
+      log.info(s"*** Get $rowKey from table: $tableName")
+    }
   }
 }
