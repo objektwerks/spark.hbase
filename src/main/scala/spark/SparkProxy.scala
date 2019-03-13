@@ -4,7 +4,7 @@ import com.typesafe.config.Config
 import org.apache.log4j.Logger
 import org.apache.spark.sql.SparkSession
 
-class SparkProxy(conf: Config) {
+case class SparkProxy(conf: Config) extends Product with Serializable {
   val log = Logger.getLogger(getClass.getName)
   val app = conf.getString("spark.app")
   val sparkSession = SparkSession.builder
@@ -19,8 +19,4 @@ class SparkProxy(conf: Config) {
     sparkSession.stop()
     log.info(s"*** Stopped Spark session for app: $app")
   }
-}
-
-object SparkProxy {
-  def apply(conf: Config): SparkProxy = new SparkProxy(conf)
 }

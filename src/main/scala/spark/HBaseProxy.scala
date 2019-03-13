@@ -10,7 +10,7 @@ import scala.collection.mutable.ArrayBuffer
 import scala.collection.JavaConverters._
 import scala.util.Try
 
-class HBaseProxy(conf: Config) {
+case class HBaseProxy(conf: Config) extends Product with Serializable {
   val log = Logger.getLogger(getClass.getName)
   val hbaseConf = HBaseConfiguration.create
   val connection = ConnectionFactory.createConnection(hbaseConf)
@@ -43,8 +43,4 @@ class HBaseProxy(conf: Config) {
     table.put(puts.asJava)
     log.info(s"*** Put $putCount rows to table: $tableName")
   }
-}
-
-object HBaseProxy {
-  def apply(conf: Config): HBaseProxy = new HBaseProxy(conf)
 }
