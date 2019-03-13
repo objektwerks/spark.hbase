@@ -10,7 +10,7 @@ import scala.collection.mutable.ArrayBuffer
 import scala.collection.JavaConverters._
 import scala.util.Try
 
-case class HBaseProxy(conf: Config) extends Product with Serializable {
+case class HBaseProxy(conf: Config) {
   val log = Logger.getLogger(getClass.getName)
   val hbaseConf = HBaseConfiguration.create
   val connection = ConnectionFactory.createConnection(hbaseConf)

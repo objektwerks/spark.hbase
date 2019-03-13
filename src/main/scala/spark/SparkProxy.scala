@@ -4,7 +4,7 @@ import com.typesafe.config.Config
 import org.apache.log4j.Logger
 import org.apache.spark.sql.SparkSession
 
-case class SparkProxy(conf: Config) extends Product with Serializable {
+case class SparkProxy(conf: Config) {
   val log = Logger.getLogger(getClass.getName)
   val app = conf.getString("spark.app")
   val sparkSession = SparkSession.builder
