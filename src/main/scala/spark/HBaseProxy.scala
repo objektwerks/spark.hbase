@@ -1,26 +1,41 @@
 package spark
 
 import com.typesafe.config.Config
-import org.apache.hadoop.hbase.{HBaseConfiguration, TableName}
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.filter.{FilterList, FirstKeyOnlyFilter, KeyOnlyFilter}
 import org.apache.hadoop.hbase.util.Bytes
+import org.apache.hadoop.hbase.{HBaseConfiguration, TableName}
 import org.apache.log4j.Logger
 
-import scala.collection.mutable.ArrayBuffer
 import scala.collection.JavaConverters._
-import scala.util.Try
+import scala.collection.mutable.ArrayBuffer
 
 case class HBaseProxy(conf: Config) {
   val log = Logger.getLogger(getClass.getName)
-  val hbaseConf = HBaseConfiguration.create
-  val connection = ConnectionFactory.createConnection(hbaseConf)
-  val admin =  connection.getAdmin
   val tableName = conf.getString("hbase.tableName")
   val columnFamily = conf.getString("hbase.columnFamily")
   val putCount = conf.getInt("hbase.putCount")
 
-  def createTable(): Try[Unit] = Try {
+  def values(): Seq[String] = {
+    try {
+      val hbaseConf = HBaseConfiguration.create
+      val connection = ConnectionFactory.createConnection(hbaseConf)
+      val admin =  connection.getAdmin
+      createTable(admin)
+      val table = connection.getTable(TableName.valueOf(tableName))
+      put(table)
+      val rowKeys = scan(table)
+      rowKeys.map( rowKey => get(table, rowKey) )
+    } catch {
+      case t: Throwable =>
+        log.error(t)
+        Seq.empty[String]
+    } finally {
+
+    }
+  }
+
+  private def createTable(admin: Admin): Unit = {
     val table = TableName.valueOf(tableName)
     val column = ColumnFamilyDescriptorBuilder.of(columnFamily)
     val descripter = TableDescriptorBuilder.newBuilder(table).setColumnFamily(column).build()
@@ -28,7 +43,7 @@ case class HBaseProxy(conf: Config) {
     log.info(s"*** Created table: $tableName")
   }
 
-  def put(): Try[Unit] = Try {
+  private def put(table: Table): Unit = {
     val puts = ArrayBuffer.empty[Put]
     val family = columnFamily.getBytes
     for (i <- 1 to putCount) {
@@ -40,49 +55,30 @@ case class HBaseProxy(conf: Config) {
       put.addColumn(family, qualifier, value)
       puts += put
     }
-    var table: Option[Table] = None
-    try {
-      table = Some( connection.getTable(TableName.valueOf(tableName)) )
-      table.foreach( t => t.put(puts.asJava) )
-    } finally {
-      table.foreach( t => t.close() )
-      log.info(s"*** Put $putCount rows to table: $tableName")
-    }
+    table.put(puts.asJava)
+    log.info(s"*** Put $putCount rows to table: $tableName")
   }
 
-  def scan(): Try[IndexedSeq[String]] = Try {
+  private def scan(table: Table): Seq[String] = {
     val filterList = new FilterList()
     filterList.addFilter(new FirstKeyOnlyFilter())
     filterList.addFilter(new KeyOnlyFilter())
     val scan = new Scan()
     scan.setFilter(filterList)
-    var table: Option[Table] = None
     val rowKeys = ArrayBuffer.empty[String]
-    try {
-      table = Some( connection.getTable(TableName.valueOf(tableName)) )
-      val scanner = table.map( t => t.getScanner(scan) )
-      scanner.foreach { s =>
-        val iterator = s.iterator
-        while ( iterator.hasNext ) {
-          rowKeys += iterator.next.getRow.toString
-        }
-      }
-      rowKeys
-    } finally {
-      table.foreach( t => t.close() )
-      log.info(s"*** Scan ${rowKeys.length} rows from table: $tableName")
+    val scanner = table.getScanner(scan)
+    val iterator = scanner.iterator
+    while ( iterator.hasNext ) {
+      rowKeys += iterator.next.getRow.toString
     }
+    log.info(s"*** Scan ${rowKeys.length} rows from table: $tableName")
+    rowKeys
   }
 
-  def get(rowKey: String): Try[Option[String]] = Try {
+  private def get(table: Table, rowKey: String): String = {
     val get = new Get(Bytes.toBytes(rowKey))
-    var table: Option[Table] = None
-    try {
-      table = Some( connection.getTable(TableName.valueOf(tableName)) )
-      table.map( t => t.get(get).getRow.toString )
-    } finally {
-      table.foreach( t => t.close() )
-      log.info(s"*** Get $rowKey from table: $tableName")
-    }
+    val value = table.get(get).getRow.toString
+    log.info(s"*** Get $rowKey from table: $tableName with value: $value")
+    value
   }
 }
