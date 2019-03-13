@@ -12,10 +12,10 @@ class HBaseProxy(conf: Config) {
   val hbaseConf = HBaseConfiguration.create
   val connection = ConnectionFactory.createConnection(hbaseConf)
   val admin =  connection.getAdmin
-  val tableName = conf.getString("hbase.tablename")
-  val columnFamily = conf.getString("hbase.columnfamily")
+  val tableName = conf.getString("hbase.table-name")
+  val columnFamily = conf.getString("hbase.column-family")
 
-  def build: Unit = {
+  def build(): Unit = {
     val table = TableName.valueOf(tableName)
     val column = ColumnFamilyDescriptorBuilder.of(columnFamily)
     val descripter = TableDescriptorBuilder.newBuilder(table).setColumnFamily(column).build()

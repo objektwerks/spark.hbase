@@ -9,8 +9,8 @@ object SparkHBaseApp extends App {
 
   val sparkSession = SparkSession
     .builder
-    .master(conf.getString("master"))
-    .appName(conf.getString("name"))
+    .master(conf.getString("spark.master"))
+    .appName(conf.getString("spark.name"))
     .getOrCreate()
 
   sys.addShutdownHook {
