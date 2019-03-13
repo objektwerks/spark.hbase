@@ -26,5 +26,5 @@ object SparkHBaseApp extends App {
 
   import sparkSession.implicits._
 
-  val dataset = sparkSession.createDataset(hbaseValues)
+  val dataset = sparkSession.createDataset(hbaseValues.getOrElse(Seq.empty[String]))
 }

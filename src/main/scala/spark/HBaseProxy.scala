@@ -9,6 +9,7 @@ import org.apache.log4j.Logger
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
+import scala.util.Try
 
 case class HBaseProxy(conf: Config) {
   val log = Logger.getLogger(getClass.getName)
@@ -16,23 +17,20 @@ case class HBaseProxy(conf: Config) {
   val columnFamily = conf.getString("hbase.columnFamily")
   val putCount = conf.getInt("hbase.putCount")
 
-  def values(): Seq[String] = {
-    try {
-      val hbaseConf = HBaseConfiguration.create
-      val connection = ConnectionFactory.createConnection(hbaseConf)
-      val admin =  connection.getAdmin
-      createTable(admin)
-      val table = connection.getTable(TableName.valueOf(tableName))
-      put(table)
-      val rowKeys = scan(table)
-      rowKeys.map( rowKey => get(table, rowKey) )
-    } catch {
-      case t: Throwable =>
-        log.error(t)
-        Seq.empty[String]
-    } finally {
-
-    }
+  def values(): Try[Seq[String]] = Try {
+    val hbaseConf = HBaseConfiguration.create
+    val connection = ConnectionFactory.createConnection(hbaseConf)
+    val admin = connection.getAdmin
+    createTable(admin)
+    val table = connection.getTable(TableName.valueOf(tableName))
+    put(table)
+    val rowKeys = scan(table)
+    val values = rowKeys.map(rowKey => get(table, rowKey))
+    drop(connection, admin, table)
+    values
+  }.recover { case t: Throwable =>
+    log.error(t)
+    Seq.empty[String]
   }
 
   private def createTable(admin: Admin): Unit = {
@@ -80,5 +78,14 @@ case class HBaseProxy(conf: Config) {
     val value = table.get(get).getRow.toString
     log.info(s"*** Get $rowKey from table: $tableName with value: $value")
     value
+  }
+
+  private def drop(connection: Connection, admin: Admin, table: Table): Unit = {
+    val tableNameToDelete = TableName.valueOf(tableName)
+    admin.disableTable(tableNameToDelete)
+    admin.deleteTable(tableNameToDelete)
+    table.close()
+    admin.close()
+    connection.close()
   }
 }
