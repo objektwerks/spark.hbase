@@ -8,6 +8,7 @@ import org.apache.log4j.Logger
 
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.JavaConverters._
+import scala.util.Try
 
 class HBaseProxy(conf: Config) {
   val log = Logger.getLogger(getClass.getName)
@@ -16,18 +17,19 @@ class HBaseProxy(conf: Config) {
   val admin =  connection.getAdmin
   val tableName = conf.getString("hbase.table-name")
   val columnFamily = conf.getString("hbase.column-family")
+  val putCount = conf.getInt("hbase.put-count")
 
-  def createTable(): Unit = {
+  def createTable(): Try[Unit] = Try {
     val table = TableName.valueOf(tableName)
     val column = ColumnFamilyDescriptorBuilder.of(columnFamily)
     val descripter = TableDescriptorBuilder.newBuilder(table).setColumnFamily(column).build()
     admin.createTable(descripter)
-    log.info(s"*** Built table: $tableName")
+    log.info(s"*** Created table: $tableName")
   }
 
-  def put(count: Int): Unit = {
+  def put(): Try[Unit] = Try {
     val puts = ArrayBuffer.empty[Put]
-    for (i <- 1 to count) {
+    for (i <- 1 to putCount) {
       val columnFamilyAsBytes = columnFamily.getBytes
       val valueAsString = i.toString
       val valueAsBytes = valueAsString.getBytes
@@ -38,7 +40,7 @@ class HBaseProxy(conf: Config) {
     }
     val table = connection.getTable(TableName.valueOf(tableName))
     table.put(puts.asJava)
-    log.info(s"*** Put $count rows to table: $tableName")
+    log.info(s"*** Put $putCount rows to table: $tableName")
   }
 }
 
