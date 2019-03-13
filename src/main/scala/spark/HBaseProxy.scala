@@ -15,9 +15,9 @@ class HBaseProxy(conf: Config) {
   val hbaseConf = HBaseConfiguration.create
   val connection = ConnectionFactory.createConnection(hbaseConf)
   val admin =  connection.getAdmin
-  val tableName = conf.getString("hbase.table-name")
-  val columnFamily = conf.getString("hbase.column-family")
-  val putCount = conf.getInt("hbase.put-count")
+  val tableName = conf.getString("hbase.tableName")
+  val columnFamily = conf.getString("hbase.columnFamily")
+  val putCount = conf.getInt("hbase.putCount")
 
   def createTable(): Try[Unit] = Try {
     val table = TableName.valueOf(tableName)
