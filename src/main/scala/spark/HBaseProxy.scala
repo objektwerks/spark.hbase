@@ -3,6 +3,7 @@ package spark
 import com.typesafe.config.Config
 import org.apache.hadoop.hbase.{HBaseConfiguration, TableName}
 import org.apache.hadoop.hbase.client._
+import org.apache.hadoop.hbase.filter.{FilterList, FirstKeyOnlyFilter, KeyOnlyFilter}
 import org.apache.hadoop.hbase.util.Bytes
 import org.apache.log4j.Logger
 
@@ -42,5 +43,28 @@ case class HBaseProxy(conf: Config) {
     val table = connection.getTable(TableName.valueOf(tableName))
     table.put(puts.asJava)
     log.info(s"*** Put $putCount rows to table: $tableName")
+  }
+
+  def scan(): Try[IndexedSeq[String]] = Try {
+    val filterList = new FilterList()
+    filterList.addFilter(new FirstKeyOnlyFilter())
+    filterList.addFilter(new KeyOnlyFilter())
+    val scan = new Scan()
+    scan.setFilter(filterList)
+    val table = connection.getTable(TableName.valueOf(tableName))
+    val scanner = table.getScanner(scan)
+    val rowKeys = ArrayBuffer.empty[String]
+    val iterator = scanner.iterator
+    while ( iterator.hasNext ) {
+      rowKeys += iterator.next.getRow.toString
+    }
+    rowKeys
+  }
+
+  def get(rowKey: String): Try[String] = Try {
+    val get = new Get(Bytes.toBytes(rowKey))
+    val table = connection.getTable(TableName.valueOf(tableName))
+    val result = table.get(get)
+    result.getRow.toString
   }
 }
