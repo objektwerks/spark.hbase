@@ -12,6 +12,7 @@ object SparkHBaseH2App {
     val conf = ConfigFactory.load("app.conf")
     val h2Proxy = H2Proxy(conf)
     val hbaseProxy = HBaseProxy(conf)
+    log.info(s"*** Created HBaseProxy and H2Proxy.")
     hbaseProxy.getRowKeys match {
       case Right(rowKeys) => runJob(log, conf, hbaseProxy, h2Proxy, rowKeys)
       case Left(throwable) => exit(log, throwable)
@@ -28,7 +29,7 @@ object SparkHBaseH2App {
       hbaseProxy.close()
       h2Proxy.close()
       sparkSession.stop()
-      log.info(s"*** Stopped Spark session.")
+      log.info(s"*** Closed HBaseProxy and H2Proxy. Stopped Spark session.")
     }
 
     import sparkSession.implicits._
