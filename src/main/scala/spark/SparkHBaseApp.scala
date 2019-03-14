@@ -37,7 +37,7 @@ object SparkHBaseApp {
 
     val dataset = sparkSession.createDataset(rowKeys)
     dataset.foreach { rowKey =>
-        println(rowKey)
+        println(hbaseProxy.getValueByRowKey(rowKey))
     }
   } match {
     case Success(_) => exit(log)
