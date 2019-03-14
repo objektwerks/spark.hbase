@@ -16,20 +16,28 @@ case class HBaseProxy(conf: Config) {
   val tableName = conf.getString("hbase.tableName")
   val columnFamily = conf.getString("hbase.columnFamily")
   val putCount = conf.getInt("hbase.putCount")
+  val hbaseConf = HBaseConfiguration.create
+  val connection = ConnectionFactory.createConnection(hbaseConf)
 
-  def createAndScanRowKeys: Either[Throwable, Seq[String]] = Try {
-    val hbaseConf = HBaseConfiguration.create
-    val connection = ConnectionFactory.createConnection(hbaseConf)
+  def getRowKeys: Either[Throwable, Seq[String]] = Try {
     val admin = connection.getAdmin
     createTable(admin)
     val table = connection.getTable(TableName.valueOf(tableName))
     put(table)
     val rowKeys = scan(table)
-    val values = rowKeys.map(rowKey => get(table, rowKey))
-    drop(connection, admin, table)
-    log.info(s"*** Created and scanned rowkeys for table: $tableName")
-    values
+    table.close()
+    admin.close()
+    rowKeys
   }.toEither
+
+  def getValueByRowKey(rowKey: String): Either[Throwable, String] = Try {
+    val table = connection.getTable(TableName.valueOf(tableName))
+    val value = get(table, rowKey)
+    table.close()
+    value
+  }.toEither
+
+  def close(): Unit = connection.close()
 
   private def createTable(admin: Admin): Unit = {
     val table = TableName.valueOf(tableName)
@@ -76,14 +84,5 @@ case class HBaseProxy(conf: Config) {
     val value = table.get(get).getRow.toString
     log.info(s"*** Get $rowKey from table: $tableName with value: $value")
     value
-  }
-
-  private def drop(connection: Connection, admin: Admin, table: Table): Unit = {
-    val tableNameToDelete = TableName.valueOf(tableName)
-    admin.disableTable(tableNameToDelete)
-    admin.deleteTable(tableNameToDelete)
-    table.close()
-    admin.close()
-    connection.close()
   }
 }

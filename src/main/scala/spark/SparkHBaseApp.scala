@@ -15,19 +15,20 @@ object SparkHBaseApp {
 
   def runHBaseJob(log: Logger, conf: Config): Unit = {
     val hbaseProxy = HBaseProxy(conf)
-    hbaseProxy.createAndScanRowKeys match {
-      case Right(rowKeys) => runSparkJob(log, conf, rowKeys)
+    hbaseProxy.getRowKeys match {
+      case Right(rowKeys) => runSparkJob(log, conf, hbaseProxy, rowKeys)
       case Left(throwable) => exit(log, throwable)
     }
   }
 
-  def runSparkJob(log: Logger, conf: Config, rowKeys: Seq[String]): Unit = Try {
+  def runSparkJob(log: Logger, conf: Config, hbaseProxy: HBaseProxy, rowKeys: Seq[String]): Unit = Try {
     val master = conf.getString("spark.master")
     val app = conf.getString("spark.app")
     val sparkSession = SparkSession.builder.master(master).appName(app).getOrCreate()
     log.info(s"*** Created Spark session for app: $app")
 
     sys.addShutdownHook {
+      hbaseProxy.close()
       sparkSession.stop()
       log.info(s"*** Stopped Spark session for app: $app")
     }
@@ -36,7 +37,7 @@ object SparkHBaseApp {
 
     val dataset = sparkSession.createDataset(rowKeys)
     dataset.foreach { rowKey =>
-      println(rowKey)
+        println(rowKey)
     }
   } match {
     case Success(_) => exit(log)
