@@ -20,6 +20,7 @@ case class HBaseProxy(conf: Config) {
 
   def getRowKeys: Either[Throwable, Seq[String]] = Try {
     val admin = connection.getAdmin
+    dropTable(admin)
     createTable(admin)
     val table = connection.getTable(TableName.valueOf(tableName))
     put(table)
@@ -37,6 +38,14 @@ case class HBaseProxy(conf: Config) {
   }.toEither
 
   def close(): Unit = connection.close()
+
+  private def dropTable(admin: Admin): Unit = {
+    val ifTableExists = TableName.valueOf(tableName)
+    if (admin.tableExists(ifTableExists)) {
+      admin.disableTable(ifTableExists)
+      admin.deleteTable(ifTableExists)
+    }
+  }
 
   private def createTable(admin: Admin): Unit = {
     val table = TableName.valueOf(tableName)
