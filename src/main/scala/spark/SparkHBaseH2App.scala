@@ -26,6 +26,7 @@ object SparkHBaseH2App {
 
     sys.addShutdownHook {
       hbaseProxy.close()
+      h2Proxy.close()
       sparkSession.stop()
       log.info(s"*** Stopped Spark session for app: $app")
     }

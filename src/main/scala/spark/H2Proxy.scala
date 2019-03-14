@@ -29,4 +29,9 @@ case class H2Proxy(conf: Config) {
     log.info("*** Executed H2 select * from kv.")
     list
   }
+
+  def close(): Unit = {
+    session.close()
+    ConnectionPool.close()
+  }
 }
