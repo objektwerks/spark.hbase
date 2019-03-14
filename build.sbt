@@ -13,6 +13,8 @@ libraryDependencies ++= {
     "org.apache.hbase" % "hbase-server" % hbaseVersion,
     "org.apache.hbase" % "hbase-common" % hbaseVersion,
     "org.apache.hadoop" % "hadoop-common" % "3.2.0",
+    "com.h2database" % "h2" % "1.4.197",
+    "org.scalikejdbc" %% "scalikejdbc" % "3.3.3",
     "com.typesafe" % "config" % "1.3.3",
     "org.scalatest" %% "scalatest" % "3.0.5" % Test
   )

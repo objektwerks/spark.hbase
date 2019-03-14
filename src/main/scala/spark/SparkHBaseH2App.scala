@@ -6,22 +6,19 @@ import org.apache.spark.sql.SparkSession
 
 import scala.util.{Failure, Success, Try}
 
-object SparkHBaseApp {
+object SparkHBaseH2App {
   def main(args: Array[String]): Unit = {
     val log = Logger.getLogger(getClass.getName)
     val conf = ConfigFactory.load("app.conf")
-    runHBaseJob(log, conf)
-  }
-
-  def runHBaseJob(log: Logger, conf: Config): Unit = {
+    val h2Proxy = H2Proxy(conf)
     val hbaseProxy = HBaseProxy(conf)
     hbaseProxy.getRowKeys match {
-      case Right(rowKeys) => runSparkJob(log, conf, hbaseProxy, rowKeys)
+      case Right(rowKeys) => runJob(log, conf, hbaseProxy, h2Proxy, rowKeys)
       case Left(throwable) => exit(log, throwable)
     }
   }
 
-  def runSparkJob(log: Logger, conf: Config, hbaseProxy: HBaseProxy, rowKeys: Seq[String]): Unit = Try {
+  def runJob(log: Logger, conf: Config, hbaseProxy: HBaseProxy, h2Proxy: H2Proxy, rowKeys: Seq[String]): Unit = Try {
     val master = conf.getString("spark.master")
     val app = conf.getString("spark.app")
     val sparkSession = SparkSession.builder.master(master).appName(app).getOrCreate()
@@ -37,14 +34,18 @@ object SparkHBaseApp {
 
     val dataset = sparkSession.createDataset(rowKeys)
     dataset.foreach { rowKey =>
-      println(hbaseProxy.getValueByRowKey(rowKey))
+      hbaseProxy.getValueByRowKey(rowKey) match {
+        case Right(value) => h2Proxy.insert(rowKey, value)
+        case Left(throwable) => log.error(s"HBaseProxy.getValueByRowKey($rowKey) failed!", throwable)
+      }
     }
   } match {
-    case Success(_) => exit(log)
+    case Success(_) => exit(log, h2Proxy)
     case Failure(throwable) => exit(log, throwable)
   }
 
-  def exit(log: Logger): Unit = {
+  def exit(log: Logger, h2Proxy: H2Proxy): Unit = {
+    log.info(s"H2 list: ${h2Proxy.list}")
     log.info("*** SparkHbase app succeeded!")
     System.exit(0)
   }
