@@ -22,13 +22,13 @@ object SparkHBaseH2App {
     val master = conf.getString("spark.master")
     val app = conf.getString("spark.app")
     val sparkSession = SparkSession.builder.master(master).appName(app).getOrCreate()
-    log.info(s"*** Created Spark session for app: $app")
+    log.info(s"*** Created Spark session.")
 
     sys.addShutdownHook {
       hbaseProxy.close()
       h2Proxy.close()
       sparkSession.stop()
-      log.info(s"*** Stopped Spark session for app: $app")
+      log.info(s"*** Stopped Spark session.")
     }
 
     import sparkSession.implicits._
@@ -47,12 +47,12 @@ object SparkHBaseH2App {
 
   def exit(log: Logger, h2Proxy: H2Proxy): Unit = {
     log.info(s"*** H2 list: ${h2Proxy.list}")
-    log.info("*** SparkHbase app succeeded!")
+    log.info("*** SparkHBaseH2App succeeded!")
     System.exit(0)
   }
 
   def exit(log: Logger, throwable: Throwable): Unit = {
-    log.error("*** SparkHbase app failed!", throwable)
+    log.error("*** SparkHBaseH2App failed!", throwable)
     System.exit(-1)
   }
 }
