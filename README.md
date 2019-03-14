@@ -7,9 +7,11 @@ Install
 >Normally I would use Homebrew to install, start and stop HBase. But, in this case, I strongly recommend
 following this guide: http://hbase.apache.org/book.html#quickstart
 
+>If useful, consider adding an **export $HBASE_HOME/bin** to your **export $PATH** entry.
+
 HBase
 -----
-3. hbase/bin$ ./hbase shell
+1. hbase/bin$ ./hbase shell
 
 Run
 ---
