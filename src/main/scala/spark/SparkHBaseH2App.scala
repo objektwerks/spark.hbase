@@ -47,7 +47,7 @@ object SparkHBaseH2App {
   }
 
   def exit(log: Logger, h2Proxy: H2Proxy): Unit = {
-    log.info(s"*** H2 list: ${h2Proxy.list}")
+    log.info(s"*** H2Proxy list: ${h2Proxy.list}")
     log.info("*** SparkHBaseH2App succeeded!")
     System.exit(0)
   }
