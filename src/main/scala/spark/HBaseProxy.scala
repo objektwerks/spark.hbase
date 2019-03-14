@@ -17,7 +17,7 @@ case class HBaseProxy(conf: Config) {
   val columnFamily = conf.getString("hbase.columnFamily")
   val putCount = conf.getInt("hbase.putCount")
 
-  def values: Either[Throwable, Seq[String]] = Try {
+  def createAndScanRowKeys: Either[Throwable, Seq[String]] = Try {
     val hbaseConf = HBaseConfiguration.create
     val connection = ConnectionFactory.createConnection(hbaseConf)
     val admin = connection.getAdmin
@@ -27,6 +27,7 @@ case class HBaseProxy(conf: Config) {
     val rowKeys = scan(table)
     val values = rowKeys.map(rowKey => get(table, rowKey))
     drop(connection, admin, table)
+    log.info(s"*** Created and scanned rowkeys for table: $tableName")
     values
   }.toEither
 
