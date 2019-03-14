@@ -16,8 +16,7 @@ case class HBaseProxy(conf: Config) {
   val tableName = conf.getString("hbase.tableName")
   val columnFamily = conf.getString("hbase.columnFamily")
   val putCount = conf.getInt("hbase.putCount")
-  val hbaseConf = HBaseConfiguration.create
-  val connection = ConnectionFactory.createConnection(hbaseConf)
+  val connection = ConnectionFactory.createConnection(HBaseConfiguration.create)
 
   def getRowKeys: Either[Throwable, Seq[String]] = Try {
     val admin = connection.getAdmin
