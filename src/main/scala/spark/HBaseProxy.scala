@@ -96,9 +96,8 @@ class HBaseProxy(conf: Config) {
     scan.setFilter(filterList)
     val rowKeys = ArrayBuffer.empty[String]
     val scanner = table.getScanner(scan)
-    val iterator = scanner.iterator
-    while ( iterator.hasNext ) {
-      rowKeys += Bytes.toString(iterator.next.value)
+    for (result: Result <- scanner.iterator.asScala) {
+      rowKeys += Bytes.toString(result.value)
     }
     scanner.close()
     log.info(s"*** Scan ${rowKeys.length} rows from table: $tableName")
@@ -110,10 +109,9 @@ class HBaseProxy(conf: Config) {
     val scan = new Scan()
     scan.addColumn(columnFamily.getBytes, valueQualifier.getBytes)
     val scanner = table.getScanner(scan)
-    val iterator = scanner.iterator
     val values = ArrayBuffer.empty[String]
-    while ( iterator.hasNext ) {
-      values += Bytes.toString(iterator.next.value)
+    for (result: Result <- scanner.iterator.asScala) {
+      values += Bytes.toString(result.value)
     }
     scanner.close()
     log.info(s"*** Scan ${values.length} rows from table: $tableName")
