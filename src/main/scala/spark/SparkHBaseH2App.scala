@@ -9,23 +9,18 @@ import org.apache.spark.sql.SparkSession
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
-object SparkHBaseH2App extends Serializable {
+object SparkHBaseH2App extends App {
   val log = Logger.getLogger(getClass.getName)
-
-  def main(args: Array[String]): Unit = {
-    val conf = ConfigFactory.load("app.conf")
-    H2Proxy(conf)
-    val hbaseProxy = HBaseProxy(conf)
-    sys.addShutdownHook {
-      hbaseProxy.close()
-      log.info(s"*** Closed HBaseProxy.")
-    }
-    log.info(s"*** Created HBaseProxy and H2Proxy.")
-    hbaseProxy.getValues match {
-      case Right(values) => runJob(conf, values)
-      case Left(throwable) => log.error("*** SparkHBaseH2App failed!", throwable)
-    }
+  val conf = ConfigFactory.load("app.conf")
+  H2Proxy(conf)
+  val hbaseProxy = HBaseProxy(conf)
+  log.info(s"*** Created HBaseProxy and H2Proxy.")
+  hbaseProxy.getValues match {
+    case Right(values) => runJob(conf, values)
+    case Left(throwable) => log.error("*** SparkHBaseH2App failed!", throwable)
   }
+  hbaseProxy.close()
+  log.info(s"*** Closed HBaseProxy.")
 
   def runJob(conf: Config, values: Seq[String]): Unit = Try {
     val master = conf.getString("spark.master")
@@ -38,11 +33,6 @@ object SparkHBaseH2App extends Serializable {
     val user = conf.getString("h2.user")
     val password = conf.getString("h2.password")
     log.info(s"*** Loaded JDBC driver.")
-
-    sys.addShutdownHook {
-      sparkSession.stop()
-      log.info(s"*** Stopped Spark session.")
-    }
 
     import sparkSession.implicits._
 
@@ -62,6 +52,9 @@ object SparkHBaseH2App extends Serializable {
         if (connection != null) connection.close()
       }
     }
+
+    sparkSession.close()
+    log.info(s"*** Closed Spark session.")
   } match {
     case Success(_) => log.info("*** SparkHBaseH2App succeeded!")
     case Failure(throwable) => log.error("*** SparkHBaseH2App failed!", throwable)
