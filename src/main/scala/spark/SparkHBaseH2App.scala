@@ -10,21 +10,19 @@ object SparkHBaseH2App extends Serializable {
   def main(args: Array[String]): Unit = {
     val log = Logger.getLogger(getClass.getName)
     val conf = ConfigFactory.load("app.conf")
-    val h2Proxy = H2Proxy(conf)
     val hbaseProxy = HBaseProxy(conf)
     sys.addShutdownHook {
       hbaseProxy.close()
-      h2Proxy.close()
-      log.info(s"*** Closed HBaseProxy and H2Proxy.")
+      log.info(s"*** Closed HBaseProxy.")
     }
     log.info(s"*** Created HBaseProxy and H2Proxy.")
     hbaseProxy.getValues match {
-      case Right(values) => runJob(log, conf, h2Proxy, values)
+      case Right(values) => runJob(log, conf, values)
       case Left(throwable) => exit(log, throwable)
     }
   }
 
-  def runJob(log: Logger, conf: Config, h2Proxy: H2Proxy, values: Seq[String]): Unit = Try {
+  def runJob(log: Logger, conf: Config, values: Seq[String]): Unit = Try {
     val master = conf.getString("spark.master")
     val app = conf.getString("spark.app")
     val sparkSession = SparkSession.builder.master(master).appName(app).getOrCreate()
@@ -39,8 +37,7 @@ object SparkHBaseH2App extends Serializable {
 
     val dataset = sparkSession.createDataset(values)
     dataset.foreach { value =>
-      h2Proxy.insert(value, value)
-      log.info(s"*** H2Proxy insert: $value")
+      log.info(s"*** Jdbc insert: $value")
     }
   } match {
     case Success(_) => exit(log)
