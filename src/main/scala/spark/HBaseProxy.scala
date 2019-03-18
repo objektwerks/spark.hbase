@@ -11,10 +11,15 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
 import scala.util.Try
 
-case class HBaseProxy(conf: Config) {
+object HBaseProxy {
+  def apply(conf: Config): HBaseProxy = new HBaseProxy(conf)
+}
+
+class HBaseProxy(conf: Config) {
   val log = Logger.getLogger(getClass.getName)
   val tableName = conf.getString("hbase.tableName")
   val columnFamily = conf.getString("hbase.columnFamily")
+  val valueQualifier = conf.getString("hbase.valueQualifier")
   val putCount = conf.getInt("hbase.putCount")
   val connection = ConnectionFactory.createConnection(HBaseConfiguration.create)
 
@@ -70,11 +75,11 @@ case class HBaseProxy(conf: Config) {
   private def put(table: Table): Unit = {
     val puts = ArrayBuffer.empty[Put]
     val family = columnFamily.getBytes
+    val qualifier = valueQualifier.getBytes
     for (i <- 1 to putCount) {
       val counter = i.toString
       val rowKey = Bytes.toBytes(counter)
       val put = new Put(rowKey)
-      val qualifier = Bytes.toBytes(counter)
       val value = Bytes.toBytes(counter)
       put.addColumn(family, qualifier, value)
       puts += put
@@ -93,7 +98,7 @@ case class HBaseProxy(conf: Config) {
     val scanner = table.getScanner(scan)
     val iterator = scanner.iterator
     while ( iterator.hasNext ) {
-      rowKeys += iterator.next.getRow.toString
+      rowKeys += Bytes.toString(iterator.next.value)
     }
     log.info(s"*** Scan ${rowKeys.length} rows from table: $tableName")
     log.info(s"*** Row Keys: ${rowKeys.toString}")
@@ -101,16 +106,13 @@ case class HBaseProxy(conf: Config) {
   }
 
   private def scanValues(table: Table): Seq[String] = {
-    val filterList = new FilterList()
-    filterList.addFilter(new FirstKeyOnlyFilter())
-    filterList.addFilter(new KeyOnlyFilter())
     val scan = new Scan()
-    scan.setFilter(filterList)
-    val values = ArrayBuffer.empty[String]
+    scan.addColumn(columnFamily.getBytes, valueQualifier.getBytes)
     val scanner = table.getScanner(scan)
     val iterator = scanner.iterator
+    val values = ArrayBuffer.empty[String]
     while ( iterator.hasNext ) {
-      values += iterator.next.value.toString
+      values += Bytes.toString(iterator.next.value)
     }
     log.info(s"*** Scan ${values.length} rows from table: $tableName")
     log.info(s"*** Values: ${values.toString}")

@@ -10,9 +10,11 @@ import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
 object SparkHBaseH2App extends Serializable {
+  val log = Logger.getLogger(getClass.getName)
+
   def main(args: Array[String]): Unit = {
-    val log = Logger.getLogger(getClass.getName)
     val conf = ConfigFactory.load("app.conf")
+    H2Proxy(conf)
     val hbaseProxy = HBaseProxy(conf)
     sys.addShutdownHook {
       hbaseProxy.close()
@@ -20,17 +22,16 @@ object SparkHBaseH2App extends Serializable {
     }
     log.info(s"*** Created HBaseProxy and H2Proxy.")
     hbaseProxy.getValues match {
-      case Right(values) => runJob(log, conf, values)
-      case Left(throwable) => exit(log, throwable)
+      case Right(values) => runJob(conf, values)
+      case Left(throwable) => log.error("*** SparkHBaseH2App failed!", throwable)
     }
   }
 
-  def runJob(log: Logger, conf: Config, values: Seq[String]): Unit = Try {
+  def runJob(conf: Config, values: Seq[String]): Unit = Try {
     val master = conf.getString("spark.master")
     val app = conf.getString("spark.app")
     val sparkSession = SparkSession.builder.master(master).appName(app).getOrCreate()
     log.info(s"*** Created Spark session.")
-
 
     Class.forName(conf.getString("h2.driver"))
     val url = conf.getString("h2.url")
@@ -52,7 +53,7 @@ object SparkHBaseH2App extends Serializable {
       try {
         connection = DriverManager.getConnection(url, user, password)
         statement = connection.createStatement()
-        val result = statement.execute(s"insert into kv values($value, $value")
+        val result = statement.executeUpdate(s"insert into kv values($value, $value)")
         log.info(s"*** JDBC insert: $value with result: $result")
       } catch { case NonFatal(e) =>
         log.error(s"JDBC error.", e)
@@ -62,17 +63,7 @@ object SparkHBaseH2App extends Serializable {
       }
     }
   } match {
-    case Success(_) => exit(log)
-    case Failure(throwable) => exit(log, throwable)
-  }
-
-  def exit(log: Logger): Unit = {
-    log.info("*** SparkHBaseH2App succeeded!")
-    System.exit(0)
-  }
-
-  def exit(log: Logger, throwable: Throwable): Unit = {
-    log.error("*** SparkHBaseH2App failed!", throwable)
-    System.exit(-1)
+    case Success(_) => log.info("*** SparkHBaseH2App succeeded!")
+    case Failure(throwable) => log.error("*** SparkHBaseH2App failed!", throwable)
   }
 }
