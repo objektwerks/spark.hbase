@@ -100,6 +100,7 @@ class HBaseProxy(conf: Config) {
     while ( iterator.hasNext ) {
       rowKeys += Bytes.toString(iterator.next.value)
     }
+    scanner.close()
     log.info(s"*** Scan ${rowKeys.length} rows from table: $tableName")
     log.info(s"*** Row Keys: ${rowKeys.toString}")
     rowKeys
@@ -114,6 +115,7 @@ class HBaseProxy(conf: Config) {
     while ( iterator.hasNext ) {
       values += Bytes.toString(iterator.next.value)
     }
+    scanner.close()
     log.info(s"*** Scan ${values.length} rows from table: $tableName")
     log.info(s"*** Values: ${values.toString}")
     values
