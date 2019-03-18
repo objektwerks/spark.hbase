@@ -9,6 +9,13 @@ following this guide: http://hbase.apache.org/book.html#quickstart
 
 >If useful, consider adding an **export $HBASE_HOME/bin** to your **export $PATH** entry.
 
+Notes
+-----
+1. Apache HBase Client - Can't be used in a Spark job because it's not serializable, resulting in this
+Spark error: Caused by: java.io.NotSerializableException: org.apache.hadoop.hbase.client.ConnectionImplementation
+2. Apache Logger - Spark can generate this error: java.io.NotSerializableException: org.apache.log4j.Logger Spark
+uses log4j exclusively. In the offending class, trait or object extend Serializable.
+
 HBase
 -----
 1. hbase/bin$ ./hbase shell
@@ -21,7 +28,8 @@ Run
 
 Web
 ---
-1. http://localhost:16010/master-status
+1. HBase: http://localhost:16010/master-status
+2. Spark: http://localhost:4040
 
 Stop
 ----

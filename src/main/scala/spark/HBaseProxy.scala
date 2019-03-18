@@ -24,10 +24,22 @@ case class HBaseProxy(conf: Config) {
     createTable(admin)
     val table = connection.getTable(TableName.valueOf(tableName))
     put(table)
-    val rowKeys = scan(table)
+    val rowKeys = scanRowKeys(table)
     table.close()
     admin.close()
     rowKeys
+  }.toEither
+
+  def getValues: Either[Throwable, Seq[String]] = Try {
+    val admin = connection.getAdmin
+    dropTable(admin)
+    createTable(admin)
+    val table = connection.getTable(TableName.valueOf(tableName))
+    put(table)
+    val values = scanValues(table)
+    table.close()
+    admin.close()
+    values
   }.toEither
 
   def getValueByRowKey(rowKey: String): Either[Throwable, String] = Try {
@@ -63,7 +75,7 @@ case class HBaseProxy(conf: Config) {
       val rowKey = Bytes.toBytes(counter)
       val put = new Put(rowKey)
       val qualifier = Bytes.toBytes(counter)
-      val value = Bytes.toBytes( (i + i).toString )
+      val value = Bytes.toBytes(counter)
       put.addColumn(family, qualifier, value)
       puts += put
     }
@@ -71,7 +83,7 @@ case class HBaseProxy(conf: Config) {
     log.info(s"*** Put $putCount rows to table: $tableName")
   }
 
-  private def scan(table: Table): Seq[String] = {
+  private def scanRowKeys(table: Table): Seq[String] = {
     val filterList = new FilterList()
     filterList.addFilter(new FirstKeyOnlyFilter())
     filterList.addFilter(new KeyOnlyFilter())
@@ -84,7 +96,25 @@ case class HBaseProxy(conf: Config) {
       rowKeys += iterator.next.getRow.toString
     }
     log.info(s"*** Scan ${rowKeys.length} rows from table: $tableName")
+    log.info(s"*** Row Keys: ${rowKeys.toString}")
     rowKeys
+  }
+
+  private def scanValues(table: Table): Seq[String] = {
+    val filterList = new FilterList()
+    filterList.addFilter(new FirstKeyOnlyFilter())
+    filterList.addFilter(new KeyOnlyFilter())
+    val scan = new Scan()
+    scan.setFilter(filterList)
+    val values = ArrayBuffer.empty[String]
+    val scanner = table.getScanner(scan)
+    val iterator = scanner.iterator
+    while ( iterator.hasNext ) {
+      values += iterator.next.value.toString
+    }
+    log.info(s"*** Scan ${values.length} rows from table: $tableName")
+    log.info(s"*** Values: ${values.toString}")
+    values
   }
 
   private def get(table: Table, rowKey: String): String = {
