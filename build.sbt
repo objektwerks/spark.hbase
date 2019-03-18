@@ -14,7 +14,6 @@ libraryDependencies ++= {
     "org.apache.hadoop" % "hadoop-common" % "3.2.0",
     "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.9.5",
     "com.h2database" % "h2" % "1.4.197",
-    "org.scalikejdbc" %% "scalikejdbc" % "3.3.3",
     "com.typesafe" % "config" % "1.3.3",
     "org.scalatest" %% "scalatest" % "3.0.5" % Test
   )
