@@ -19,7 +19,8 @@ class HBaseProxy(conf: Config) {
   val log = Logger.getLogger(getClass.getName)
   val tableName = conf.getString("hbase.tableName")
   val columnFamily = conf.getString("hbase.columnFamily")
-  val valueQualifier = conf.getString("hbase.valueQualifier")
+  val columnFamilyAsBytes = Bytes.toBytes(columnFamily)
+  val valueQualifierAsBytes = Bytes.toBytes(conf.getString("hbase.valueQualifier"))
   val putCount = conf.getInt("hbase.putCount")
   val connection = ConnectionFactory.createConnection(HBaseConfiguration.create)
 
@@ -74,14 +75,12 @@ class HBaseProxy(conf: Config) {
 
   private def put(table: Table): Unit = {
     val puts = ArrayBuffer.empty[Put]
-    val family = columnFamily.getBytes
-    val qualifier = valueQualifier.getBytes
     for (i <- 1 to putCount) {
       val counter = i.toString
       val rowKey = Bytes.toBytes(counter)
       val put = new Put(rowKey)
       val value = Bytes.toBytes(counter)
-      put.addColumn(family, qualifier, value)
+      put.addColumn(columnFamilyAsBytes, valueQualifierAsBytes, value)
       puts += put
     }
     table.put(puts.asJava)
@@ -107,7 +106,7 @@ class HBaseProxy(conf: Config) {
 
   private def scanValues(table: Table): Seq[String] = {
     val scan = new Scan()
-    scan.addColumn(columnFamily.getBytes, valueQualifier.getBytes)
+    scan.addColumn(columnFamilyAsBytes, valueQualifierAsBytes)
     val scanner = table.getScanner(scan)
     val values = ArrayBuffer.empty[String]
     for (result: Result <- scanner.iterator.asScala) {
