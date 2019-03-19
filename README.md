@@ -13,8 +13,9 @@ Notes
 -----
 1. Apache HBase Client - Can't be used in a Spark job because it's not serializable, resulting in this
 Spark error: Caused by: java.io.NotSerializableException: org.apache.hadoop.hbase.client.ConnectionImplementation
-2. Apache Logger - Spark can generate this error: java.io.NotSerializableException: org.apache.log4j.Logger Spark
-uses log4j exclusively. In the offending class, trait or object extend Serializable.
+2. Apache Log4j - Spark can generate this error: java.io.NotSerializableException: org.apache.log4j.Logger Spark
+uses log4j exclusively. In the offending class, trait or object extend Serializable ( which does not always work).
+3. H2Proxy - When even using the JDBC API, Spark will throw a serialization error, blaming log4j.
 
 HBase
 -----
