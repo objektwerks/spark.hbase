@@ -1,11 +1,7 @@
 package spark
 
-import java.sql.{Connection, DriverManager, Statement}
-
 import com.typesafe.config.Config
 import org.apache.log4j.Logger
-
-import scala.util.control.NonFatal
 
 object H2Proxy {
   def apply(conf: Config): H2Proxy = new H2Proxy(conf)
@@ -13,31 +9,29 @@ object H2Proxy {
 
 class H2Proxy(conf: Config) extends Serializable {
   val log = Logger.getLogger(getClass.getName)
+  val driver = conf.getString("h2.driver")
   val url = conf.getString("h2.url")
   val user = conf.getString("h2.user")
   val password = conf.getString("h2.password")
 
-  Class.forName(conf.getString("h2.driver"))
-  log.info(s"*** H2Proxy: Driver loaded.")
+  import scalikejdbc._
+  Class.forName(driver)
+  log.info("*** H2Proxy: Loaded driver.")
 
-  executeUpdate("drop table kv if exists;")
-  executeUpdate("create table kv (key varchar(64) not null, value varchar(64) not null);")
+  ConnectionPool.singleton(url, user, password)
+  implicit val session = AutoSession
+  sql"""
+      drop table kv if exists;
+      create table kv (key varchar(64) not null, value varchar(64) not null);
+    """.execute.apply
+  log.info("*** H2Proxy: Dropped and created kv table.")
 
-  def executeUpdate(sql: String): Int = {
-    var connection: Connection = null
-    var statement: Statement = null
-    var result = 0
-    try {
-      connection = DriverManager.getConnection(url, user, password)
-      statement = connection.createStatement()
-      result = statement.executeUpdate(sql)
-      log.info(s"*** H2Proxy: Executed: $sql with result: $result")
-    } catch {
-      case NonFatal(e) => log.error(s"H2Proxy: NonFatal error!", e)
-    } finally {
-      if (statement != null) statement.close()
-      if (connection != null) connection.close()
-    }
+  def insert(keyValue: KeyValue): Int = {
+    val result =
+      sql"""
+           insert into kv values(${keyValue.key}, ${keyValue.value})
+        """.update.apply
+    log.info(s"*** H2Proxy: Inserted key value: $keyValue with result: $result")
     result
   }
 }
