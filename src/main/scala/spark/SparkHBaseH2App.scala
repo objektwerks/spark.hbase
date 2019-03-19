@@ -21,10 +21,8 @@ object SparkHBaseH2App extends App {
   hbaseProxy.close()
 
   def runJob(rowKeys: Seq[String]): Unit = Try {
-    val master = conf.getString("spark.master")
-    val app = conf.getString("spark.app")
-    val sparkSession = SparkSession.builder.master(master).appName(app).getOrCreate()
-    log.info(s"*** SparkHBaseH2App: Created Spark session.")
+    val sparkSession = SparkSession.builder.master(conf.getString("spark.master")).appName(conf.getString("spark.app")).getOrCreate()
+    log.info("*** SparkHBaseH2App: Created Spark session.")
 
     import sparkSession.implicits._
 
