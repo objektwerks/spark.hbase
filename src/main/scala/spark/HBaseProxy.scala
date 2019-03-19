@@ -23,7 +23,8 @@ class HBaseProxy(conf: Config) {
   val columnFamilyAsBytes = Bytes.toBytes(columnFamily)
   val valueQualifierAsBytes = Bytes.toBytes(conf.getString("hbase.valueQualifier"))
   val putCount = conf.getInt("hbase.putCount")
-  val connection = ConnectionFactory.createConnection(HBaseConfiguration.create)
+  val hbaseConf = HBaseConfiguration.create
+  val connection = ConnectionFactory.createConnection(hbaseConf)
   log.info("*** HBaseProxy: Connection created.")
 
   def getRowKeys: Try[Seq[String]] = Try {
