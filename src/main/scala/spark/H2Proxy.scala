@@ -13,11 +13,11 @@ object H2Proxy {
 
 class H2Proxy(conf: Config) extends Serializable {
   val log = Logger.getLogger(getClass.getName)
-
-  Class.forName(conf.getString("h2.driver"))
   val url = conf.getString("h2.url")
   val user = conf.getString("h2.user")
   val password = conf.getString("h2.password")
+
+  Class.forName(conf.getString("h2.driver"))
   log.info(s"*** H2Proxy: Driver loaded.")
 
   executeUpdate("drop table kv if exists;")
