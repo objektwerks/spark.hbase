@@ -24,6 +24,8 @@ class HBaseProxy(conf: Config) {
   val valueQualifierAsBytes = Bytes.toBytes(conf.getString("hbase.valueQualifier"))
   val putCount = conf.getInt("hbase.putCount")
   val hbaseConf = HBaseConfiguration.create
+  hbaseConf.set("hbase.zookeeper.quorum", conf.getString("hbase.zookeeperQuorum"))
+  hbaseConf.set("hbase.zookeeper.property.clientPort", conf.getString("hbase.zookeeperClientPort"))
   val connection = ConnectionFactory.createConnection(hbaseConf)
   log.info("*** HBaseProxy: Connection created.")
 
