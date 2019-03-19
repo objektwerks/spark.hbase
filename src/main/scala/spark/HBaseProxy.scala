@@ -25,7 +25,7 @@ class HBaseProxy(conf: Config) {
   val putCount = conf.getInt("hbase.putCount")
   val connection = ConnectionFactory.createConnection(HBaseConfiguration.create)
 
-  def getRowKeys: Either[Throwable, Seq[String]] = Try {
+  def getRowKeys: Try[Seq[String]] = Try {
     val admin = connection.getAdmin
     dropTable(admin)
     createTable(admin)
@@ -35,9 +35,9 @@ class HBaseProxy(conf: Config) {
     table.close()
     admin.close()
     rowKeys
-  }.toEither
+  }
 
-  def getValues: Either[Throwable, Seq[String]] = Try {
+  def getValues: Try[Seq[String]] = Try {
     val admin = connection.getAdmin
     dropTable(admin)
     createTable(admin)
@@ -47,14 +47,14 @@ class HBaseProxy(conf: Config) {
     table.close()
     admin.close()
     values
-  }.toEither
+  }
 
-  def getValueByRowKey(rowKey: String): Either[Throwable, String] = Try {
+  def getValueByRowKey(rowKey: String): Try[String] = Try {
     val table = connection.getTable(TableName.valueOf(tableName))
     val value = get(table, rowKey)
     table.close()
     value
-  }.toEither
+  }
 
   def close(): Unit = connection.close()
 
@@ -63,6 +63,7 @@ class HBaseProxy(conf: Config) {
     if (admin.tableExists(ifTableExists)) {
       admin.disableTable(ifTableExists)
       admin.deleteTable(ifTableExists)
+      log.info(s"*** HBaseProxy: Dropped table: $tableName")
     }
   }
 
@@ -71,7 +72,7 @@ class HBaseProxy(conf: Config) {
     val column = ColumnFamilyDescriptorBuilder.of(columnFamily)
     val descripter = TableDescriptorBuilder.newBuilder(table).setColumnFamily(column).build()
     admin.createTable(descripter)
-    log.info(s"*** Created table: $tableName")
+    log.info(s"*** HBaseProxy: Created table: $tableName")
   }
 
   private def put(table: Table): Unit = {
@@ -87,7 +88,7 @@ class HBaseProxy(conf: Config) {
       puts += put
     }
     table.put(puts.asJava)
-    log.info(s"*** Put $putCount rows to table: $tableName")
+    log.info(s"*** HBaseProxy: Put $putCount rows to table: $tableName")
   }
 
   private def scanRowKeys(table: Table): Seq[String] = {
@@ -99,11 +100,11 @@ class HBaseProxy(conf: Config) {
     val rowKeys = ArrayBuffer.empty[String]
     val scanner = table.getScanner(scan)
     for (result: Result <- scanner.iterator.asScala) {
-      rowKeys += Bytes.toString(result.value)
+      rowKeys += Bytes.toString(result.getRow)
     }
     scanner.close()
-    log.info(s"*** Scan ${rowKeys.length} rows from table: $tableName")
-    log.info(s"*** Row Keys: ${rowKeys.toString}")
+    log.info(s"*** HBaseProxy: Scan ${rowKeys.length} rows from table: $tableName")
+    log.info(s"*** HBaseProxy: Row Keys: ${rowKeys.toString}")
     rowKeys
   }
 
@@ -116,15 +117,15 @@ class HBaseProxy(conf: Config) {
       values += Bytes.toString(result.value)
     }
     scanner.close()
-    log.info(s"*** Scan ${values.length} rows from table: $tableName")
-    log.info(s"*** Values: ${values.toString}")
+    log.info(s"*** HBaseProxy: Scan ${values.length} rows from table: $tableName")
+    log.info(s"*** HBaseProxy: Values: ${values.toString}")
     values
   }
 
   private def get(table: Table, rowKey: String): String = {
     val get = new Get(Bytes.toBytes(rowKey))
-    val value = table.get(get).getRow.toString
-    log.info(s"*** Get $rowKey from table: $tableName with value: $value")
+    val value = Bytes.toString(table.get(get).value)
+    log.info(s"*** HBaseProxy: Get $rowKey from table: $tableName with value: $value")
     value
   }
 }

@@ -13,37 +13,33 @@ object SparkHBaseH2App extends App {
   val conf = ConfigFactory.load("app.conf")
   val h2Proxy = H2Proxy(conf)
   val hbaseProxy = HBaseProxy(conf)
-  log.info(s"*** Created HBaseProxy and H2Proxy.")
-  hbaseProxy.getValues match {
-    case Right(values) => runJob(values)
-    case Left(throwable) => log.error("*** SparkHBaseH2App failed!", throwable)
+  hbaseProxy.getRowKeys map { rowKeys =>
+    runJob(rowKeys)
+  } recover {
+    case NonFatal(e) => log.error("*** SparkHBaseH2App: HbaseProxy failed!", e)
   }
   hbaseProxy.close()
-  log.info(s"*** Closed HBaseProxy.")
 
-  def runJob(values: Seq[String]): Unit = Try {
+  def runJob(rowKeys: Seq[String]): Unit = Try {
     val master = conf.getString("spark.master")
     val app = conf.getString("spark.app")
     val sparkSession = SparkSession.builder.master(master).appName(app).getOrCreate()
-    log.info(s"*** Created Spark session.")
+    log.info(s"*** SparkHBaseH2App: Created Spark session.")
 
     import sparkSession.implicits._
 
-    val dataset = sparkSession.createDataset(values)
-    dataset.foreach { value =>
-      try {
+    sparkSession.createDataset(rowKeys).foreach { rowKey =>
+      hbaseProxy.getValueByRowKey(rowKey) foreach { value =>
         val keyValue = Json.parse(value).as[KeyValue]
         val result = h2Proxy.executeUpdate(s"insert into kv values(${keyValue.key}, ${keyValue.value})")
         assert(result == 1)
-      } catch {
-        case NonFatal(e) => log.error(s"JDBC error.", e)
       }
     }
 
     sparkSession.close()
-    log.info(s"*** Closed Spark session.")
+    log.info(s"*** SparkHBaseH2App: Closed Spark session.")
   } match {
-    case Success(_) => log.info("*** SparkHBaseH2App succeeded!")
-    case Failure(throwable) => log.error("*** SparkHBaseH2App failed!", throwable)
+    case Success(_) => log.info("*** SparkHBaseH2App: Job succeeded!")
+    case Failure(e) => log.error("*** SparkHBaseH2App: Job failed!", e)
   }
 }
