@@ -5,6 +5,7 @@ import java.sql.{Connection, DriverManager, Statement}
 import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.log4j.Logger
 import org.apache.spark.sql.SparkSession
+import play.api.libs.json.Json
 
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
@@ -41,9 +42,10 @@ object SparkHBaseH2App extends App {
       var connection: Connection = null
       var statement: Statement = null
       try {
+        val keyValue = Json.parse(value).as[KeyValue]
         connection = DriverManager.getConnection(url, user, password)
         statement = connection.createStatement()
-        val result = statement.executeUpdate(s"insert into kv values($value, $value)")
+        val result = statement.executeUpdate(s"insert into kv values(${keyValue.key}, ${keyValue.value})")
         log.info(s"*** JDBC insert: $value with result: $result")
       } catch { case NonFatal(e) =>
         log.error(s"JDBC error.", e)

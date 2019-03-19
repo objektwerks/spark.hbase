@@ -6,6 +6,7 @@ import org.apache.hadoop.hbase.filter.{FilterList, FirstKeyOnlyFilter, KeyOnlyFi
 import org.apache.hadoop.hbase.util.Bytes
 import org.apache.hadoop.hbase.{HBaseConfiguration, TableName}
 import org.apache.log4j.Logger
+import play.api.libs.json.Json
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
@@ -79,7 +80,9 @@ class HBaseProxy(conf: Config) {
       val counter = i.toString
       val rowKey = Bytes.toBytes(counter)
       val put = new Put(rowKey)
-      val value = Bytes.toBytes(counter)
+      val keyValue = KeyValue(counter, counter)
+      val json = Json.toJson(keyValue).toString
+      val value = Bytes.toBytes(json)
       put.addColumn(columnFamilyAsBytes, valueQualifierAsBytes, value)
       puts += put
     }
