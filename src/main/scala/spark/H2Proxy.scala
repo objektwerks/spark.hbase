@@ -18,7 +18,7 @@ class H2Proxy(conf: Config) extends Serializable {
   val url = conf.getString("h2.url")
   val user = conf.getString("h2.user")
   val password = conf.getString("h2.password")
-  log.info(s"*** H2 proxy driver loaded.")
+  log.info(s"*** H2Proxy: Driver loaded.")
 
   executeUpdate("drop table kv if exists;")
   executeUpdate("create table kv (key varchar(64) not null, value varchar(64) not null);")
@@ -31,9 +31,9 @@ class H2Proxy(conf: Config) extends Serializable {
       connection = DriverManager.getConnection(url, user, password)
       statement = connection.createStatement()
       result = statement.executeUpdate(sql)
-      log.info(s"*** H2 proxy executed: $sql with result: $result")
+      log.info(s"*** H2Proxy: Executed: $sql with result: $result")
     } catch {
-      case NonFatal(e) => log.error(s"H2 proxy error.", e)
+      case NonFatal(e) => log.error(s"H2Proxy: NonFatal error!", e)
     } finally {
       if (statement != null) statement.close()
       if (connection != null) connection.close()

@@ -24,6 +24,7 @@ class HBaseProxy(conf: Config) {
   val valueQualifierAsBytes = Bytes.toBytes(conf.getString("hbase.valueQualifier"))
   val putCount = conf.getInt("hbase.putCount")
   val connection = ConnectionFactory.createConnection(HBaseConfiguration.create)
+  log.info("*** HBaseProxy: Connection created.")
 
   def getRowKeys: Try[Seq[String]] = Try {
     val admin = connection.getAdmin
@@ -56,7 +57,10 @@ class HBaseProxy(conf: Config) {
     value
   }
 
-  def close(): Unit = connection.close()
+  def close(): Unit = {
+    connection.close()
+    log.info("*** HBaseProxy: Connection closed.")
+  }
 
   private def dropTable(admin: Admin): Unit = {
     val ifTableExists = TableName.valueOf(tableName)

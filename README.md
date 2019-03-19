@@ -1,6 +1,6 @@
 Spark HBase
 -----------
->Project that prototypes some Spark-HBase integration ideas.
+>Project that prototypes some off-the-wall Spark-HBase integration ideas.
 
 Install
 -------
@@ -9,13 +9,12 @@ following this guide: http://hbase.apache.org/book.html#quickstart
 
 >If useful, consider adding an **export $HBASE_HOME/bin** to your **export $PATH** entry.
 
-Notes
------
-1. Apache HBase Client - Can't be used in a Spark job because it's not serializable, resulting in this
-Spark error: Caused by: java.io.NotSerializableException: org.apache.hadoop.hbase.client.ConnectionImplementation
-2. Apache Log4j - Spark can generate this error: java.io.NotSerializableException: org.apache.log4j.Logger Spark
-uses log4j exclusively. In the offending class, trait or object extend Serializable ( which does not always work).
-3. H2Proxy - When even using the JDBC API, Spark will throw a serialization error, blaming log4j.
+Note
+----
+>I ran into several Spark task serialization errors. SparkHBaseH2App, for instances, has no read or write Spark
+connector, instead relying on the HBase Java Client and JDBC API. See def runJob(...). Initially, I passed H2Proxy
+and HBaseProxy into runJob, which always producted task serialization errors. Lesson: A Spark Job, or closure, is
+a very restrictive context in which to execute code. Do only what you must in a Spark closure - and no more!
 
 HBase
 -----

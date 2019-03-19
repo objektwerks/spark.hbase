@@ -29,10 +29,12 @@ object SparkHBaseH2App extends App {
     import sparkSession.implicits._
 
     sparkSession.createDataset(rowKeys).foreach { rowKey =>
-      hbaseProxy.getValueByRowKey(rowKey) foreach { value =>
-        val keyValue = Json.parse(value).as[KeyValue]
-        val result = h2Proxy.executeUpdate(s"insert into kv values(${keyValue.key}, ${keyValue.value})")
-        assert(result == 1)
+      hbaseProxy.getValueByRowKey(rowKey) match {
+        case Success(value) =>
+          val keyValue = Json.parse(value).as[KeyValue]
+          val result = h2Proxy.executeUpdate(s"insert into kv values(${keyValue.key}, ${keyValue.value})")
+          assert(result == 1)
+        case Failure(e) => log.error(s"*** SparkHBaseH2App: Processing $rowKey failed!", e)
       }
     }
 
