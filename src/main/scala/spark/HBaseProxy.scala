@@ -18,14 +18,14 @@ object HBaseProxy {
 
 class HBaseProxy(conf: Config) {
   val log = Logger.getLogger(getClass.getName)
-  val tableName = conf.getString("hbase.tableName")
-  val columnFamily = conf.getString("hbase.columnFamily")
+  val tableName = conf.getString("tableName")
+  val columnFamily = conf.getString("columnFamily")
   val columnFamilyAsBytes = Bytes.toBytes(columnFamily)
-  val valueQualifierAsBytes = Bytes.toBytes(conf.getString("hbase.valueQualifier"))
-  val putCount = conf.getInt("hbase.putCount")
+  val valueQualifierAsBytes = Bytes.toBytes(conf.getString("valueQualifier"))
+  val putCount = conf.getInt("putCount")
   val hbaseConf = HBaseConfiguration.create
-  hbaseConf.set("hbase.zookeeper.quorum", conf.getString("hbase.zookeeperQuorum"))
-  hbaseConf.set("hbase.zookeeper.property.clientPort", conf.getString("hbase.zookeeperClientPort"))
+  hbaseConf.set("zookeeper.quorum", conf.getString("zookeeperQuorum"))
+  hbaseConf.set("zookeeper.property.clientPort", conf.getString("zookeeperClientPort"))
   val connection = ConnectionFactory.createConnection(hbaseConf)
   log.info("*** HBaseProxy: Connection created.")
 

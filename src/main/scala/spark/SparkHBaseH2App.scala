@@ -11,8 +11,8 @@ import scala.util.{Failure, Success, Try}
 object SparkHBaseH2App extends App {
   val log = Logger.getLogger(getClass.getName)
   val conf = ConfigFactory.load("app.conf")
-  val h2Proxy = H2Proxy(conf)
-  val hbaseProxy = HBaseProxy(conf)
+  val h2Proxy = H2Proxy(conf.getConfig("h2"))
+  val hbaseProxy = HBaseProxy(conf.getConfig("hbase"))
   hbaseProxy.getRowKeys map { rowKeys =>
     runJob(rowKeys)
   } recover {

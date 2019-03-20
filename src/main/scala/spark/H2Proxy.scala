@@ -9,10 +9,10 @@ object H2Proxy {
 
 class H2Proxy(conf: Config) extends Serializable {
   val log = Logger.getLogger(getClass.getName)
-  val driver = conf.getString("h2.driver")
-  val url = conf.getString("h2.url")
-  val user = conf.getString("h2.user")
-  val password = conf.getString("h2.password")
+  val driver = conf.getString("driver")
+  val url = conf.getString("url")
+  val user = conf.getString("user")
+  val password = conf.getString("password")
 
   import scalikejdbc._
   Class.forName(driver)
