@@ -16,7 +16,7 @@ object HBaseProxy {
   def apply(conf: Config): HBaseProxy = new HBaseProxy(conf)
 }
 
-class HBaseProxy(conf: Config) {
+class HBaseProxy(conf: Config) extends Serializable {
   val log = Logger.getLogger(getClass.getName)
   val tableName = conf.getString("tableName")
   val columnFamily = conf.getString("columnFamily")
