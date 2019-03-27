@@ -11,6 +11,7 @@ libraryDependencies ++= {
     "org.apache.hbase" % "hbase-client" % hbaseVersion,
     "org.apache.hbase" % "hbase-server" % hbaseVersion,
     "org.apache.hbase" % "hbase-common" % hbaseVersion,
+    "org.apache.hadoop" % "hadoop-core" % "1.2.1",
     "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.9.5",
     "com.typesafe.play" %% "play-json" % "2.7.2",
     "org.scalikejdbc" %% "scalikejdbc" % "3.3.3",
