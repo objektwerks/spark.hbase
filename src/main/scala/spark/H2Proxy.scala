@@ -34,4 +34,6 @@ class H2Proxy(conf: Config) extends Serializable {
     log.info(s"*** H2Proxy: Inserted key value: $keyValue with result: $result")
     result
   }
+
+  def close(): Unit = session.close()
 }

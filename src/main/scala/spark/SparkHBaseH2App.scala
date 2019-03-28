@@ -19,6 +19,7 @@ object SparkHBaseH2App extends App {
     case NonFatal(e) => log.error("*** SparkHBaseH2App: HbaseProxy failed!", e)
   }
   hbaseProxy.close()
+  h2Proxy.close()
 
   def runJob(rowKeys: Seq[String]): Unit = Try {
     val master = conf.getString("spark.master")
