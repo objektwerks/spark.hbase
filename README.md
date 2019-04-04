@@ -1,6 +1,6 @@
 Spark HBase
 -----------
->Project that prototypes some very off-the-wall Spark-HBase integration ideas. Avoid at all costs!
+>Project that prototypes a very off-the-wall Spark-HBase-Database app. Avoid at all costs!
 
 Install
 -------
