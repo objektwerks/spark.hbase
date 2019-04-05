@@ -1,6 +1,9 @@
 Spark HBase
 -----------
->Project that prototypes a very off-the-wall Spark-HBase-Database app.
+>Prototypes a Spark-HBase-Database app without Spark read-write connectors. Specifically,
+this app has no Spark connectors to read-write vis-a-via HBase or a JDBC store. And while
+JDBC read-write connector support ships with Spark 2.4, updates are **not** supported! Hence
+the challenge of building a true Spark clusterable app without Spark read-write connectors.
 
 Install
 -------
