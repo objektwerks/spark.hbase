@@ -11,8 +11,8 @@ following this guide: http://hbase.apache.org/book.html#quickstart
 
 Note
 ----
->Spark Task serialization issues are a challenge, to put it mildly. My earlier versions of this app relied
-to much on a task closure accessing external hbase and h2 proxies. The current implementation creates an
+>Spark task serialization issues are a challenge, to put it mildly. My earlier versions of this app relied
+too much on a task closure accessing external hbase and h2 proxies. The current implementation creates an
 external hbase and h2 proxy, but then closes them. Now, hbase and h2 proxies are created within the task
 closure, with idea of all code executing, as intended, on a worker node.
 
