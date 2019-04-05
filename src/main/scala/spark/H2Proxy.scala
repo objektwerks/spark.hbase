@@ -2,8 +2,7 @@ package spark
 
 import com.typesafe.config.Config
 import org.apache.log4j.Logger
-import scalikejdbc.{AutoSession, ConnectionPool}
-import scalikejdbc.scalikejdbcSQLInterpolationImplicitDef
+import scalikejdbc.{AutoSession, ConnectionPool, DB, scalikejdbcSQLInterpolationImplicitDef}
 
 object H2Proxy {
   @transient lazy val log = Logger.getLogger(getClass.getName)
@@ -25,22 +24,33 @@ class H2Proxy(conf: Config) extends Serializable {
 
   def init(): Unit = {
     implicit val session = AutoSession
-    sql"""
-      drop table kv if exists;
-      create table kv (key varchar(64) not null, value varchar(64) not null);
-    """.execute.apply
+    DB localTx { implicit session =>
+      sql"""
+        drop table kv if exists;
+        create table kv (key varchar(64) not null, value int not null);
+      """.execute.apply
+    }
     session.close()
     log.info(s"*** H2Proxy: Created kv table.")
   }
 
   def insert(keyValue: KeyValue): Int = {
     implicit val session = AutoSession
-    val result =
-      sql"""
-           insert into kv values(${keyValue.key}, ${keyValue.value})
-        """.update.apply
+    val result = DB localTx { implicit session =>
+      sql"insert into kv values(${keyValue.key}, ${keyValue.value})".update.apply
+    }
     session.close()
     log.info(s"*** H2Proxy: Inserted key value: $keyValue with result: $result")
+    result
+  }
+
+  def update(keyValue: KeyValue): Int = {
+    implicit val session = AutoSession
+    val result = DB localTx { implicit session =>
+      sql"update kv set value = ${keyValue.value} where key = ${keyValue.key}".update.apply
+    }
+    session.close()
+    log.info(s"*** H2Proxy: Updated key value: $keyValue with result: $result")
     result
   }
 }

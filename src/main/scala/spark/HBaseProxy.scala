@@ -80,10 +80,10 @@ class HBaseProxy(conf: Config) extends Serializable {
   private def put(table: Table): Unit = {
     val puts = ArrayBuffer.empty[Put]
     for (i <- 1 to putCount) {
-      val counter = i.toString
+      val counter = i
       val rowKey = Bytes.toBytes(counter)
       val put = new Put(rowKey)
-      val keyValue = KeyValue(counter, counter)
+      val keyValue = KeyValue(counter.toString, counter)
       val json = Json.toJson(keyValue).toString
       val value = Bytes.toBytes(json)
       put.addColumn(columnFamilyAsBytes, valueQualifierAsBytes, value)

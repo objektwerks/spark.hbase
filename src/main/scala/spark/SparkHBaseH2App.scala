@@ -35,8 +35,8 @@ object SparkHBaseH2App extends App {
       hbaseProxy.getValueByRowKey(rowKey) match {
         case Success(value) =>
           val keyValue = Json.parse(value).as[KeyValue]
-          val result = h2Proxy.insert(keyValue)
-          assert(result == 1)
+          assert(h2Proxy.insert(keyValue) == 1)
+          assert(h2Proxy.update(keyValue.copy(value = keyValue.value + 1)) == 1)
         case Failure(e) => log.error(s"*** SparkHBaseH2App: Processing $rowKey failed!", e)
       }
     }
