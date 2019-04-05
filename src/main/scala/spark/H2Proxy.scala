@@ -6,12 +6,13 @@ import scalikejdbc.{AutoSession, ConnectionPool, DB, scalikejdbcSQLInterpolation
 
 object H2Proxy {
   @transient lazy val log = Logger.getLogger(getClass.getName)
+  @transient lazy implicit val session = AutoSession
 
   def apply(conf: Config): H2Proxy = new H2Proxy(conf)
 }
 
 class H2Proxy(conf: Config) extends Serializable {
-  import H2Proxy.log
+  import H2Proxy._
 
   val driver = conf.getString("driver")
   val url = conf.getString("url")
@@ -23,7 +24,6 @@ class H2Proxy(conf: Config) extends Serializable {
   log.info("*** H2Proxy: Loaded driver and created connection.")
 
   def init(): Unit = {
-    implicit val session = AutoSession
     DB localTx { implicit session =>
       sql"""
         drop table kv if exists;
@@ -35,7 +35,6 @@ class H2Proxy(conf: Config) extends Serializable {
   }
 
   def insert(keyValue: KeyValue): Int = {
-    implicit val session = AutoSession
     val result = DB localTx { implicit session =>
       sql"insert into kv values(${keyValue.key}, ${keyValue.value})".update.apply
     }
@@ -45,7 +44,6 @@ class H2Proxy(conf: Config) extends Serializable {
   }
 
   def update(keyValue: KeyValue): Int = {
-    implicit val session = AutoSession
     val result = DB localTx { implicit session =>
       sql"update kv set value = ${keyValue.value} where key = ${keyValue.key}".update.apply
     }
