@@ -14,9 +14,9 @@ Note
 >Spark task serialization issues are a challenge, to put it mildly. Earlier versions of this app relied
 too much on a task closure accessing external hbase and h2 proxies. The current implementation temporarily
 creates a pre-Spark session hbase and h2 proxy. Only after all pre-Spark session work has been completed,
-will a Spark session be created. Then a Dataset is created from a suquence of pre-scanned HBase row keys.
-Then an hbase and h2 proxy are created within the Spark task closure, with intention that all hbase and h2
-code will execute on a Spark worker node.
+will a Spark session be created. A Dataset is then created from a sequence of pre-scanned HBase row keys.
+Then an hbase and h2 proxy are created within the Spark task closure, with the intention that all hbase and
+h2 code will execute on a Spark worker node. Only pre-Spark session code should execute on the Driver client.
 
 Pre Spark Session
 -----------------
