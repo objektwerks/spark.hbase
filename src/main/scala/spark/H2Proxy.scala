@@ -30,7 +30,6 @@ class H2Proxy(conf: Config) extends Serializable {
         create table kv (key varchar(64) not null, value int not null);
       """.execute.apply
     }
-    session.close()
     log.info(s"*** H2Proxy: Created kv table.")
   }
 
@@ -38,7 +37,6 @@ class H2Proxy(conf: Config) extends Serializable {
     val result = DB localTx { implicit session =>
       sql"insert into kv values(${keyValue.key}, ${keyValue.value})".update.apply
     }
-    session.close()
     log.info(s"*** H2Proxy: Inserted key value: $keyValue with result: $result")
     result
   }
@@ -47,7 +45,6 @@ class H2Proxy(conf: Config) extends Serializable {
     val result = DB localTx { implicit session =>
       sql"update kv set value = ${keyValue.value} where key = ${keyValue.key}".update.apply
     }
-    session.close()
     log.info(s"*** H2Proxy: Updated key value: $keyValue with result: $result")
     result
   }
