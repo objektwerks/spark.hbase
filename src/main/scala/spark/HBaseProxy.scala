@@ -13,24 +13,27 @@ import scala.collection.mutable.ArrayBuffer
 import scala.util.Try
 
 object HBaseProxy {
+  @transient lazy val log = Logger.getLogger(getClass.getName)
+
   def apply(conf: Config): HBaseProxy = new HBaseProxy(conf)
 }
 
 class HBaseProxy(conf: Config) extends Serializable {
-  val log = Logger.getLogger(getClass.getName)
+  import HBaseProxy.log
+
   val tableName = conf.getString("tableName")
   val columnFamily = conf.getString("columnFamily")
   val columnFamilyAsBytes = Bytes.toBytes(columnFamily)
   val valueQualifierAsBytes = Bytes.toBytes(conf.getString("valueQualifier"))
   val putCount = conf.getInt("putCount")
-  val hbaseConf = HBaseConfiguration.create
-  hbaseConf.set("zookeeper.quorum", conf.getString("zookeeperQuorum"))
-  hbaseConf.set("zookeeper.property.clientPort", conf.getString("zookeeperClientPort"))
-  val connection = ConnectionFactory.createConnection(hbaseConf)
-  log.info("*** HBaseProxy: Connection created.")
 
   def getRowKeys: Try[Seq[String]] = Try {
+    val hbaseConf = HBaseConfiguration.create
+    hbaseConf.set("zookeeper.quorum", conf.getString("zookeeperQuorum"))
+    hbaseConf.set("zookeeper.property.clientPort", conf.getString("zookeeperClientPort"))
+    val connection = ConnectionFactory.createConnection(hbaseConf)
     val admin = connection.getAdmin
+    log.info("*** HBaseProxy: Connection created.")
     dropTable(admin)
     createTable(admin)
     val table = connection.getTable(TableName.valueOf(tableName))
@@ -38,31 +41,23 @@ class HBaseProxy(conf: Config) extends Serializable {
     val rowKeys = scanRowKeys(table)
     table.close()
     admin.close()
+    connection.close()
+    log.info("*** HBaseProxy: Connection closed.")
     rowKeys
   }
 
-  def getValues: Try[Seq[String]] = Try {
-    val admin = connection.getAdmin
-    dropTable(admin)
-    createTable(admin)
-    val table = connection.getTable(TableName.valueOf(tableName))
-    put(table)
-    val values = scanValues(table)
-    table.close()
-    admin.close()
-    values
-  }
-
   def getValueByRowKey(rowKey: String): Try[String] = Try {
+    val hbaseConf = HBaseConfiguration.create
+    hbaseConf.set("zookeeper.quorum", conf.getString("zookeeperQuorum"))
+    hbaseConf.set("zookeeper.property.clientPort", conf.getString("zookeeperClientPort"))
+    val connection = ConnectionFactory.createConnection(hbaseConf)
+    log.info("*** HBaseProxy: Connection created.")
     val table = connection.getTable(TableName.valueOf(tableName))
     val value = get(table, rowKey)
     table.close()
-    value
-  }
-
-  def close(): Unit = {
     connection.close()
     log.info("*** HBaseProxy: Connection closed.")
+    value
   }
 
   private def dropTable(admin: Admin): Unit = {
@@ -113,20 +108,6 @@ class HBaseProxy(conf: Config) extends Serializable {
     log.info(s"*** HBaseProxy: Scan ${rowKeys.length} rows from table: $tableName")
     log.info(s"*** HBaseProxy: Row Keys: ${rowKeys.toString}")
     rowKeys
-  }
-
-  private def scanValues(table: Table): Seq[String] = {
-    val scan = new Scan()
-    scan.addColumn(columnFamilyAsBytes, valueQualifierAsBytes)
-    val scanner = table.getScanner(scan)
-    val values = ArrayBuffer.empty[String]
-    for (result: Result <- scanner.iterator.asScala) {
-      values += Bytes.toString(result.value)
-    }
-    scanner.close()
-    log.info(s"*** HBaseProxy: Scan ${values.length} rows from table: $tableName")
-    log.info(s"*** HBaseProxy: Values: ${values.toString}")
-    values
   }
 
   private def get(table: Table, rowKey: String): String = {
