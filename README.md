@@ -25,7 +25,7 @@ Pre Spark Session
 3. Put key-value pairs into HBase key-value table.
 4. Scan HBase key-value table for all row keys.
 5. Create H2 key-value table.
-6. HBase and H2 proxies destroyed by GC.
+6. HBase and H2 proxies are destroyed by GC.
 
 Spark Session
 -------------
@@ -36,7 +36,7 @@ Spark Session
 5. Convert Json value to Scala object.
 6. Insert Scala object into key-value H2 table.
 7. Update Scala object in H2 key-value table.
-8. HBase and H2 proxies destroyed by GC.
+8. HBase and H2 proxies are destroyed by GC.
 9. Spark session is closed.
 
 HBase
