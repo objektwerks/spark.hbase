@@ -28,10 +28,7 @@ class HBaseProxy(conf: Config) extends Serializable {
   val putCount = conf.getInt("putCount")
 
   def getRowKeys: Try[Seq[String]] = Try {
-    val hbaseConf = HBaseConfiguration.create
-    hbaseConf.set("zookeeper.quorum", conf.getString("zookeeperQuorum"))
-    hbaseConf.set("zookeeper.property.clientPort", conf.getString("zookeeperClientPort"))
-    val connection = ConnectionFactory.createConnection(hbaseConf)
+    val connection = createConnection()
     val admin = connection.getAdmin
     log.info("*** HBaseProxy: Connection created.")
     dropTable(admin)
@@ -47,10 +44,7 @@ class HBaseProxy(conf: Config) extends Serializable {
   }
 
   def getValueByRowKey(rowKey: String): Try[String] = Try {
-    val hbaseConf = HBaseConfiguration.create
-    hbaseConf.set("zookeeper.quorum", conf.getString("zookeeperQuorum"))
-    hbaseConf.set("zookeeper.property.clientPort", conf.getString("zookeeperClientPort"))
-    val connection = ConnectionFactory.createConnection(hbaseConf)
+    val connection = createConnection()
     log.info("*** HBaseProxy: Connection created.")
     val table = connection.getTable(TableName.valueOf(tableName))
     val value = get(table, rowKey)
@@ -58,6 +52,13 @@ class HBaseProxy(conf: Config) extends Serializable {
     connection.close()
     log.info("*** HBaseProxy: Connection closed.")
     value
+  }
+
+  private def createConnection(): Connection = {
+    val hbaseConf = HBaseConfiguration.create
+    hbaseConf.set("zookeeper.quorum", conf.getString("zookeeperQuorum"))
+    hbaseConf.set("zookeeper.property.clientPort", conf.getString("zookeeperClientPort"))
+    ConnectionFactory.createConnection(hbaseConf)
   }
 
   private def dropTable(admin: Admin): Unit = {
