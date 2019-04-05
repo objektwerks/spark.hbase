@@ -1,19 +1,12 @@
-Spark HBase
------------
+Spark HBase Database
+--------------------
 >Prototypes a Spark-HBase-Database app without Spark read-write connectors. Specifically,
 this app has no Spark connectors to read-write vis-a-via HBase or a JDBC store. And while
 JDBC read-write connector support ships with Spark 2.4, updates are **not** supported! Hence
 the challenge of building a true Spark clusterable app without Spark read-write connectors.
 
-Install
--------
->Normally I would use Homebrew to install, start and stop HBase. But, in this case, I strongly recommend
-following this guide: http://hbase.apache.org/book.html#quickstart
-
->If useful, consider adding an **export $HBASE_HOME/bin** to your **export $PATH** entry.
-
-Note
-----
+Serialization
+-------------
 >Spark task serialization issues are a challenge, to put it mildly. Earlier versions of this app relied
 too much on a task closure accessing external hbase and h2 proxies. The current implementation temporarily
 creates a pre-Spark session hbase and h2 proxy. Only after all pre-Spark session work has been completed,
@@ -41,6 +34,13 @@ Spark Session
 7. Update Scala object in H2 key-value table.
 8. HBase and H2 proxies are destroyed by GC.
 9. Spark session is closed.
+
+Install
+-------
+>Normally I would use Homebrew to install, start and stop HBase. But, in this case, I strongly recommend
+following this guide: http://hbase.apache.org/book.html#quickstart
+
+>If useful, consider adding an **export $HBASE_HOME/bin** to your **export $PATH** entry.
 
 HBase
 -----
