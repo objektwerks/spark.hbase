@@ -2,11 +2,10 @@ package spark
 
 import com.typesafe.config.Config
 import org.apache.log4j.Logger
-import scalikejdbc.{AutoSession, ConnectionPool, DB, scalikejdbcSQLInterpolationImplicitDef}
+import scalikejdbc.{ConnectionPool, DB, scalikejdbcSQLInterpolationImplicitDef}
 
 object H2Proxy {
   @transient lazy val log = Logger.getLogger(getClass.getName)
-  @transient lazy implicit val session = AutoSession
 
   def apply(conf: Config): H2Proxy = new H2Proxy(conf)
 }
