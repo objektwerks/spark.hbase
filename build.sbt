@@ -15,8 +15,8 @@ libraryDependencies ++= {
     "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.9.5",
     "com.typesafe.play" %% "play-json" % "2.7.2",
     "org.scalikejdbc" %% "scalikejdbc" % "3.3.3",
-    "com.h2database" % "h2" % "1.4.197",
-    "com.typesafe" % "config" % "1.3.3",
-    "org.scalatest" %% "scalatest" % "3.0.5" % Test
+    "com.h2database" % "h2" % "1.4.199",
+    "com.typesafe" % "config" % "1.3.4",
+    "org.scalatest" %% "scalatest" % "3.0.8" % Test
   )
 }
