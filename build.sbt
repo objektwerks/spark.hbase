@@ -1,7 +1,7 @@
 name := "spark.hbase"
 organization := "objektwerks"
 version := "0.1"
-scalaVersion := "2.12.8"
+scalaVersion := "2.12.9"
 libraryDependencies ++= {
   val sparkVersion = "2.4.3"
   val hbaseVersion = "2.2.0"
@@ -15,7 +15,7 @@ libraryDependencies ++= {
     "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.9.5",
     "com.typesafe.play" %% "play-json" % "2.7.2",
     "org.scalikejdbc" %% "scalikejdbc" % "3.3.3",
-    "com.h2database" % "h2" % "1.4.199",
+    "com.h2database" % "h2" % "1.4.197",
     "com.typesafe" % "config" % "1.3.4",
     "org.scalatest" %% "scalatest" % "3.0.8" % Test
   )
