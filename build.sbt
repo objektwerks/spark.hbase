@@ -1,10 +1,10 @@
 name := "spark.hbase"
 organization := "objektwerks"
 version := "0.1"
-scalaVersion := "2.13.7"
+scalaVersion := "2.12.15"
 libraryDependencies ++= {
-  val sparkVersion = "3.2.0"
-  val hbaseVersion = "2.3.2"
+  val sparkVersion = "2.4.8"
+  val hbaseVersion = "2.4.8"
   Seq(
     "org.apache.spark" %% "spark-core" % sparkVersion,
     "org.apache.spark" %% "spark-sql" % sparkVersion,
