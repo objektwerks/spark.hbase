@@ -15,7 +15,7 @@ libraryDependencies ++= {
     "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.13.0",
     "com.typesafe.play" %% "play-json" % "2.9.2",
     "org.scalikejdbc" %% "scalikejdbc" % "3.5.0", // Can't upgrade to 4.0.0
-    "com.h2database" % "h2" % "1.4.206",
+    "com.h2database" % "h2" % "2.0.206",
     "com.typesafe" % "config" % "1.4.1"
   )
 }
