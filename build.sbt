@@ -16,6 +16,6 @@ libraryDependencies ++= {
     "com.typesafe.play" %% "play-json" % "2.9.2",
     "org.scalikejdbc" %% "scalikejdbc" % "3.5.0", // Can't upgrade to 4.0.0
     "com.h2database" % "h2" % "2.1.210",
-    "com.typesafe" % "config" % "1.4.1"
+    "com.typesafe" % "config" % "1.4.2"
   )
 }
