@@ -14,7 +14,7 @@ libraryDependencies ++= {
     "org.apache.hadoop" % "hadoop-core" % "1.2.1",
     "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.13.2",
     "com.typesafe.play" %% "play-json" % "2.9.2",
-    "org.scalikejdbc" %% "scalikejdbc" % "4.1.0",
+    "org.scalikejdbc" %% "scalikejdbc" % "4.2.0",
     "com.h2database" % "h2" % "2.2.224",
     "com.typesafe" % "config" % "1.4.2"
   )
