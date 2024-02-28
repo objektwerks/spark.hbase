@@ -16,6 +16,6 @@ libraryDependencies ++= {
     "com.typesafe.play" %% "play-json" % "2.9.2",
     "org.scalikejdbc" %% "scalikejdbc" % "4.2.1",
     "com.h2database" % "h2" % "2.2.224",
-    "com.typesafe" % "config" % "1.4.2"
+    "com.typesafe" % "config" % "1.4.3"
   )
 }
