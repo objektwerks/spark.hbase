@@ -1,7 +1,7 @@
 name := "spark.hbase"
 organization := "objektwerks"
 version := "0.1"
-scalaVersion := "2.12.20"
+scalaVersion := "2.12.21"
 libraryDependencies ++= {
   val sparkVersion = "2.4.8"
   val hbaseVersion = "2.6.3"
